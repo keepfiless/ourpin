@@ -37,6 +37,6 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add search/ README.md
+          git add search/
           git commit -m "Search: ${{ inputs.query }}" || exit 0
           git push
