@@ -68,7 +68,7 @@ async def get_media_url(url):
                     return im.group(1).replace("\\u002F", "/"), False
 
     except Exception as e:
-        print(f"Error: {e}", flush=True)
+        print(f"❌ خطا: {e}", flush=True)
     return None, False
 
 async def download_file(url, is_video, output_dir):
@@ -84,7 +84,7 @@ async def download_file(url, is_video, output_dir):
                     fpath.write_bytes(content)
                     return str(fpath)
     except Exception as e:
-        print(f"Download error: {e}", flush=True)
+        print(f"❌ خطای دانلود: {e}", flush=True)
     return None
 
 def update_main_readme(base_dir, url, resolved, media_url, is_video, file_path, success, folder_name):
@@ -92,7 +92,7 @@ def update_main_readme(base_dir, url, resolved, media_url, is_video, file_path, 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     persian_msg = """
-> اگر نتوانستید بصورت مستقیم از گیتهاب دانلود کنید بخاطر محدودیت های اینترنت است برای حل این موضوع شما میتوانید کل ریپازیتوری را از صفحه ی اصلی فورک بصورت زیپ دانلود کنید در این صورت مشکل حل شده و فایل ها درون فایل زیپ خواهد بود
+> ⚠️ اگر نتوانستید بصورت مستقیم از گیتهاب دانلود کنید بخاطر محدودیت های اینترنت است برای حل این موضوع شما میتوانید کل ریپازیتوری را از صفحه ی اصلی فورک بصورت زیپ دانلود کنید در این صورت مشکل حل شده و فایل ها درون فایل زیپ خواهد بود 📦
 
 """
 
@@ -100,11 +100,11 @@ def update_main_readme(base_dir, url, resolved, media_url, is_video, file_path, 
     if readme_path.exists():
         content = readme_path.read_text()
     else:
-        content = f"# Pinterest Downloads\n\n{persian_msg}| Date | Source | Folder | Type | Status |\n|------|--------|--------|------|--------|\n"
+        content = f"# 📌 دانلودهای پینترست\n\n{persian_msg}| 📅 تاریخ | 🔗 منبع | 📁 پوشه | 📂 نوع | ✅ وضعیت |\n|------|--------|--------|------|--------|\n"
 
     # Add new entry
-    media_type = "Video" if is_video else "Image"
-    status = "OK" if success else "FAILED"
+    media_type = "🎬 ویدیو" if is_video else "🖼️ تصویر"
+    status = "✅ موفق" if success else "❌ ناموفق"
     folder_link = f"[{folder_name}](./{folder_name}/)"
     new_line = f"| {timestamp} | [{url}]({url}) | {folder_link} | {media_type} | {status} |\n"
     content += new_line
@@ -134,18 +134,18 @@ async def main(url):
     # Print Summary
     print("", flush=True)
     print("=" * 50, flush=True)
-    print("DOWNLOAD SUMMARY", flush=True)
+    print("📊 خلاصه دانلود", flush=True)
     print("=" * 50, flush=True)
-    print(f"Input URL: {url}", flush=True)
+    print(f"🔗 لینک ورودی: {url}", flush=True)
     if resolved != url:
-        print(f"Resolved:  {resolved}", flush=True)
+        print(f"🔄 لینک نهایی: {resolved}", flush=True)
     if success:
-        print(f"Status:    SUCCESS", flush=True)
-        print(f"Type:      {'Video' if is_video else 'Image'}", flush=True)
-        print(f"Saved to:  {file_path}", flush=True)
-        print(f"Media URL: {media_url}", flush=True)
+        print(f"✅ وضعیت: موفق", flush=True)
+        print(f"📂 نوع: {'🎬 ویدیو' if is_video else '🖼️ تصویر'}", flush=True)
+        print(f"📁 ذخیره شد در: {file_path}", flush=True)
+        print(f"🌐 لینک مدیا: {media_url}", flush=True)
     else:
-        print(f"Status:    FAILED - No media found", flush=True)
+        print(f"❌ وضعیت: ناموفق - مدیایی یافت نشد", flush=True)
     print("=" * 50, flush=True)
 
 if __name__ == "__main__":
@@ -153,4 +153,4 @@ if __name__ == "__main__":
     if url:
         asyncio.run(main(url))
     else:
-        print("Usage: python download.py <pinterest_url>", flush=True)
+        print("📌 استفاده: python download.py <لینک_پینترست>", flush=True)
