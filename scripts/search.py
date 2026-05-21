@@ -41,24 +41,25 @@ def search(query, num=10):
     print(f"Downloaded {len(results)} files to search/{folder_name}")
 
 def update_readme(query, folder, files):
-    readme_path = Path("README.md")
-
-    content = f"\n## Search: {query}\n"
-    content += f"Folder: `search/{folder}`\n\n"
-
+    # README inside each search folder with images/videos
+    folder_readme = Path(f"search/{folder}/README.md")
+    content = f"# {query}\n\n"
     for f in files:
         ext = Path(f).suffix.lower()
-        path = f"search/{folder}/{f}"
         if ext in ['.mp4', '.mov', '.webm']:
-            content += f"- 🎬 [{f}]({path})\n"
+            content += f"- 🎬 [{f}]({f})\n"
         else:
-            content += f"- ![{f}]({path})\n"
+            content += f"![{f}]({f})\n\n"
+    folder_readme.write_text(content)
 
-    if readme_path.exists():
-        existing = readme_path.read_text()
-        readme_path.write_text(existing + content)
+    # Main search/README.md with links to searches
+    main_readme = Path("search/README.md")
+    link = f"- [{query}]({folder}/)\n"
+    if main_readme.exists():
+        existing = main_readme.read_text()
+        main_readme.write_text(existing + link)
     else:
-        readme_path.write_text(f"# Pinterest Results\n{content}")
+        main_readme.write_text(f"# Searches\n\n{link}")
 
 if __name__ == "__main__":
     query = sys.argv[1] if len(sys.argv) > 1 else "nature"
