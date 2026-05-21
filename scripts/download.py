@@ -29,13 +29,42 @@ async def get_media_url(url):
                         data = json.loads(pws.group(1))
                         pins = data.get("props", {}).get("initialReduxState", {}).get("pins", {})
                         for pid, pin in pins.items():
+                            # Check story_pin_data first (video pins)
+                            story_data = pin.get("story_pin_data")
+                            if story_data and story_data.get("pages"):
+                                pages = story_data["pages"]
+                                if len(pages) > 0 and pages[0].get("blocks"):
+                                    blocks = pages[0]["blocks"]
+                                    if len(blocks) > 0 and blocks[0].get("video"):
+                                        vlist = blocks[0]["video"].get("video_list", {})
+                                        for vkey in ["V_720P", "V_EXP7", "V_EXP6", "V_480P", "V_360P"]:
+                                            if vkey in vlist:
+                                                u = vlist[vkey].get("url", "")
+                                                if u and ".m3u8" not in u and u.endswith(".mp4"):
+                                                    return u, True
+                                        # Try any mp4 in video_list
+                                        for vkey, vdata in vlist.items():
+                                            if isinstance(vdata, dict):
+                                                u = vdata.get("url", "")
+                                                if u and u.endswith(".mp4"):
+                                                    return u, True
+
+                            # Check regular videos.video_list
                             if pin.get("videos"):
                                 vlist = pin["videos"].get("video_list", {})
-                                for vkey in ["V_720P", "V_EXP7", "V_480P", "V_360P"]:
+                                for vkey in ["V_720P", "V_EXP7", "V_EXP6", "V_480P", "V_360P"]:
                                     if vkey in vlist:
                                         u = vlist[vkey].get("url", "")
-                                        if u and ".m3u8" not in u:
+                                        if u and ".m3u8" not in u and u.endswith(".mp4"):
                                             return u, True
+                                # Try any mp4 in video_list
+                                for vkey, vdata in vlist.items():
+                                    if isinstance(vdata, dict):
+                                        u = vdata.get("url", "")
+                                        if u and u.endswith(".mp4"):
+                                            return u, True
+
+                            # Fallback to images
                             images = pin.get("images", {})
                             for ikey in ["orig", "736x", "474x"]:
                                 if ikey in images:
@@ -70,6 +99,7 @@ async def download(url):
     # Try direct download
     media_url, is_video = await get_media_url(resolved)
     if media_url:
+        print(f"Found {'video' if is_video else 'image'}: {media_url}")
         result = await download_direct(media_url, is_video, str(downloads_dir))
         if result:
             print(f"Downloaded: {result}")
