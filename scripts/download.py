@@ -18,7 +18,6 @@ async def resolve_short_url(url):
     return url
 
 async def get_media_url(url):
-    """Extract media URL from Pinterest pin page"""
     try:
         async with aiohttp.ClientSession() as session:
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
@@ -69,7 +68,7 @@ async def get_media_url(url):
                     return im.group(1).replace("\\u002F", "/"), False
 
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error: {e}", flush=True)
     return None, False
 
 async def download_file(url, is_video, output_dir):
@@ -85,14 +84,31 @@ async def download_file(url, is_video, output_dir):
                     fpath.write_bytes(content)
                     return str(fpath)
     except Exception as e:
-        print(f"Download error: {e}")
+        print(f"Download error: {e}", flush=True)
     return None
+
+def update_main_readme(base_dir, url, resolved, media_url, is_video, file_path, success):
+    readme_path = base_dir / "README.md"
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Read existing content or create header
+    if readme_path.exists():
+        content = readme_path.read_text()
+    else:
+        content = "# Pinterest Downloads\n\n| Date | Source | Type | Status |\n|------|--------|------|--------|\n"
+
+    # Add new entry
+    media_type = "Video" if is_video else "Image"
+    status = "OK" if success else "FAILED"
+    new_line = f"| {timestamp} | [{url}]({url}) | {media_type} | {status} |\n"
+    content += new_line
+
+    readme_path.write_text(content)
 
 async def main(url):
     base_dir = Path("downloads")
     base_dir.mkdir(exist_ok=True)
 
-    # Create folder with timestamp
     folder_name = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = base_dir / folder_name
     output_dir.mkdir(exist_ok=True)
@@ -104,35 +120,31 @@ async def main(url):
     if media_url:
         file_path = await download_file(media_url, is_video, str(output_dir))
 
-    # Create README
-    readme_path = output_dir / "README.md"
-    with open(readme_path, "w") as f:
-        f.write(f"# Pinterest Download\n\n")
-        f.write(f"**Source:** {url}\n\n")
-        if resolved != url:
-            f.write(f"**Resolved:** {resolved}\n\n")
-        if media_url:
-            f.write(f"**Media URL:** {media_url}\n\n")
-            f.write(f"**Type:** {'Video' if is_video else 'Image'}\n")
+    success = file_path is not None
 
-    # Summary
-    print("\n" + "="*50)
-    print("DOWNLOAD SUMMARY")
-    print("="*50)
-    print(f"Input URL: {url}")
+    # Update main README
+    update_main_readme(base_dir, url, resolved, media_url, is_video, file_path, success)
+
+    # Print Summary
+    print("", flush=True)
+    print("=" * 50, flush=True)
+    print("DOWNLOAD SUMMARY", flush=True)
+    print("=" * 50, flush=True)
+    print(f"Input URL: {url}", flush=True)
     if resolved != url:
-        print(f"Resolved:  {resolved}")
-    if file_path:
-        print(f"Status:    SUCCESS")
-        print(f"Type:      {'Video' if is_video else 'Image'}")
-        print(f"Saved to:  {file_path}")
+        print(f"Resolved:  {resolved}", flush=True)
+    if success:
+        print(f"Status:    SUCCESS", flush=True)
+        print(f"Type:      {'Video' if is_video else 'Image'}", flush=True)
+        print(f"Saved to:  {file_path}", flush=True)
+        print(f"Media URL: {media_url}", flush=True)
     else:
-        print(f"Status:    FAILED - No media found")
-    print("="*50 + "\n")
+        print(f"Status:    FAILED - No media found", flush=True)
+    print("=" * 50, flush=True)
 
 if __name__ == "__main__":
     url = sys.argv[1] if len(sys.argv) > 1 else ""
     if url:
         asyncio.run(main(url))
     else:
-        print("Usage: python download.py <pinterest_url>")
+        print("Usage: python download.py <pinterest_url>", flush=True)
