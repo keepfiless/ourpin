@@ -22,33 +22,15 @@ def download(url):
     print(f"Downloading: {resolved}")
 
     try:
-        client = PinterestDL.with_api()
-        pins = client.scrape(url=resolved, num=1)
-
-        if pins:
-            # video=True downloads actual video, not screenshot
-            client.download(
-                pins[:1],
-                output_dir=str(downloads_dir),
-                video=True,
-                skip_remux=True
-            )
-            print(f"Downloaded to {downloads_dir}")
-        else:
-            print("No pins found")
-
+        images = PinterestDL.with_api().scrape_and_download(
+            url=resolved,
+            output_dir=str(downloads_dir),
+            num=1,
+            download_streams=True,  # Download video streams
+        )
+        print(f"Downloaded {len(images)} item(s) to {downloads_dir}")
     except Exception as e:
         print(f"Error: {e}")
-        try:
-            PinterestDL.with_api().scrape_and_download(
-                url=resolved,
-                output_dir=str(downloads_dir),
-                num=1,
-                video=True,
-                skip_remux=True
-            )
-        except Exception as e2:
-            print(f"Fallback error: {e2}")
 
 if __name__ == "__main__":
     url = sys.argv[1] if len(sys.argv) > 1 else ""
