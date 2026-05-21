@@ -87,20 +87,26 @@ async def download_file(url, is_video, output_dir):
         print(f"Download error: {e}", flush=True)
     return None
 
-def update_main_readme(base_dir, url, resolved, media_url, is_video, file_path, success):
+def update_main_readme(base_dir, url, resolved, media_url, is_video, file_path, success, folder_name):
     readme_path = base_dir / "README.md"
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    persian_msg = """
+> اگر نتوانستید بصورت مستقیم از گیتهاب دانلود کنید بخاطر محدودیت های اینترنت است برای حل این موضوع شما میتوانید کل ریپازیتوری را از صفحه ی اصلی فورک بصورت زیپ دانلود کنید در این صورت مشکل حل شده و فایل ها درون فایل زیپ خواهد بود
+
+"""
 
     # Read existing content or create header
     if readme_path.exists():
         content = readme_path.read_text()
     else:
-        content = "# Pinterest Downloads\n\n| Date | Source | Type | Status |\n|------|--------|------|--------|\n"
+        content = f"# Pinterest Downloads\n\n{persian_msg}| Date | Source | Folder | Type | Status |\n|------|--------|--------|------|--------|\n"
 
     # Add new entry
     media_type = "Video" if is_video else "Image"
     status = "OK" if success else "FAILED"
-    new_line = f"| {timestamp} | [{url}]({url}) | {media_type} | {status} |\n"
+    folder_link = f"[{folder_name}](./{folder_name}/)"
+    new_line = f"| {timestamp} | [{url}]({url}) | {folder_link} | {media_type} | {status} |\n"
     content += new_line
 
     readme_path.write_text(content)
@@ -123,7 +129,7 @@ async def main(url):
     success = file_path is not None
 
     # Update main README
-    update_main_readme(base_dir, url, resolved, media_url, is_video, file_path, success)
+    update_main_readme(base_dir, url, resolved, media_url, is_video, file_path, success, folder_name)
 
     # Print Summary
     print("", flush=True)
